@@ -209,12 +209,23 @@ local function get_params(range, bufnr)
   return make_params(range.start, range._end, bufnr)
 end
 
-local function parseHints(result, ctx)
+--- The result should already be within the range, but some LSP servers (e.g. basedpyright) might return hints outside the range.
+--- Thus, during parsing the hints, we should filter out the hints that are outside the range.
+---@param range table mark-like indexing (1-based lines, 0-based columns)
+local function parseHints(result, ctx, range)
   if type(result) ~= "table" then
     return {}
   end
 
-  result = adapter.adapt(result, ctx)
+  local filtered_result = {}
+  for _, inlayHint in pairs(result) do
+    local line = tonumber(inlayHint.position.line) + 1
+    if line >= range.start[1] and line <= range._end[1] then
+      table.insert(filtered_result, inlayHint)
+    end
+  end
+
+  result = adapter.adapt(filtered_result, ctx)
 
   local map = {}
   for _, inlayHint in pairs(result) do
@@ -250,7 +261,7 @@ local function on_refresh(err, result, ctx, range)
   end
 
   local bufnr = ctx.bufnr
-  local parsed = parseHints(result, ctx)
+  local parsed = parseHints(result, ctx, range)
 
   -- range given is 1-indexed, but clear is 0-indexed (end is exclusive).
   M.clear(bufnr, range.start[1] - 1, range._end[1])

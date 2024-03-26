@@ -2,6 +2,10 @@
 
 Partial implementation of [LSP](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/) inlay hint.
 
+## Fork notice
+
+This fork fixes the problem of inlay hints being displayed multiple times on some servers due to the server not respecting the range of the requested inlay hints. See [basedpyright#207](https://github.com/DetachHead/basedpyright/issues/207).
+
 ## Installation
 
 Add `lvimuser/lsp-inlayhints.nvim` using your favorite plugin manager and call
